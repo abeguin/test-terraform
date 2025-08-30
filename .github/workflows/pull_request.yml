@@ -25,7 +25,7 @@ jobs:
         working-directory: terraform
         run: |
           terraform init -backend=false
-          terraform test | tee $GITHUB_STEP_SUMMARY
+          terraform test -v | tee $GITHUB_STEP_SUMMARY
 
   terraform-format:
     runs-on: ubuntu-latest
