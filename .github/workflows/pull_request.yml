@@ -22,7 +22,7 @@ jobs:
           terraform_version: 1.12
 
       - name: run tests
-        working-directory: code/terraform
+        working-directory: terraform
         run: |
           terraform init -backend=false
           terraform test | tee $GITHUB_STEP_SUMMARY
@@ -63,6 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: run TFLint
+        working-directory: terraform
         run: tflint -f compact | tee $GITHUB_STEP_SUMMARY
 
   commit-checks:
