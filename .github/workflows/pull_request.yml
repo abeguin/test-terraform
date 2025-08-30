@@ -1,4 +1,4 @@
-name: Deploy to AWS
+name: Terraform checks and plan
 on:
   pull_request:
 
@@ -25,7 +25,7 @@ jobs:
         working-directory: code/terraform
         run: |
           terraform init -backend=false
-          terraform test
+          terraform test | tee $GITHUB_STEP_SUMMARY
 
   terraform-format:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
       - name: Terraform fmt
         working-directory: terraform
         run: |
-          terraform fmt -recursive -check
+          terraform fmt -recursive -check | tee $GITHUB_STEP_SUMMARY
 
   terraform-lint:
     runs-on: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: run TFLint
-        run: tflint -f compact
+        run: tflint -f compact | tee $GITHUB_STEP_SUMMARY
 
   commit-checks:
     runs-on: ubuntu-latest
