@@ -14,7 +14,7 @@ jobs:
   terraform-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: setup terraform
         uses: hashicorp/setup-terraform@v3
@@ -30,7 +30,7 @@ jobs:
   terraform-format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: setup terraform
         uses: hashicorp/setup-terraform@v3
@@ -45,7 +45,7 @@ jobs:
   terraform-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: setup terraform
         uses: hashicorp/setup-terraform@v3
@@ -68,7 +68,7 @@ jobs:
   commit-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -85,7 +85,7 @@ jobs:
       - commit-checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: setup aws credentials
         uses: aws-actions/configure-aws-credentials@v4
