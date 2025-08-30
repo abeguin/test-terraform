@@ -1,0 +1,20 @@
+branch_whitelist = ["main"] # ensure we are on a release branch
+disable_changelog = true      # do not generate a changelog.md
+from_latest_tag = true        # only consider commits since last release
+skip_untracked = true         # it's okay to be dirty
+tag_prefix = "v"              # version tags start with a v
+
+post_bump_hooks = [
+    "git push origin",
+    "git push origin {{version_tag}}",
+]
+
+# map names to github usernames for changelog
+[changelog]
+authors = [
+    { username = "abeguin_pictet", signature = "Arnaud Béguin" },
+    { username = "hdighedy_pictet", signature = "Hakim DIGHEDY" },
+    { username = "jlanzrein_pictet", signature = "Johan Lanzrein" },
+    { username = "jodesroches_pictet", signature = "Joachim Desroches" },
+    { username = "ebarajas_pictet", signature = "Esteban Barajas" }
+]

@@ -1,0 +1,114 @@
+name: Deploy to AWS
+on:
+  pull_request:
+
+
+permissions:
+  actions: read        # Required to identify workflow run.
+  checks: write        # Required to add status summary.
+  contents: read       # Required to check out repository.
+  pull-requests: write # Required to add comment and label.
+  id-token: write      # Required to configure AWS credentials.
+
+jobs:
+  terraform-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12
+
+      - name: run tests
+        working-directory: code/terraform
+        run: |
+          terraform init -backend=false
+          terraform test
+
+  terraform-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12
+
+      - name: Terraform fmt
+        working-directory: terraform
+        run: |
+          terraform fmt -recursive -check
+
+  terraform-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12
+
+      - name: setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.52.0
+
+      - name: init TFLint
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: run TFLint
+        run: tflint -f compact
+
+  commit-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: cocogitto/cocogitto-action@v6
+        with:
+          check-latest-tag-only: true
+
+  terraform-plan:
+    needs:
+      - terraform-format
+      - terraform-lint
+      - terraform-test
+      - commit-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE }}
+          aws-region: ${{ vars.TF_BUCKET_REGION }}
+
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12
+
+      - name: terraform plan
+        uses: op5dev/tf-via-pr@v13
+        with:
+          command: plan
+          working-directory: terraform
+          validate: true
+          format: false
+          arg-auto-approve: false
+          arg-backend-config: "bucket=${{vars.TF_BUCKET}},region=${{vars.TF_BUCKET_REGION}},key=${{vars.TF_STATE_KEY}}"
+        env:
+          TF_VAR_aws_assume_role: ${{ vars.TF_AWS_ROLE_TO_ASSUME }}
+
+
+

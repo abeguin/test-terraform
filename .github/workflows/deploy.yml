@@ -1,0 +1,46 @@
+name: Deploy to AWS
+on:
+  push:
+    branches:
+      - main
+
+
+permissions:
+  actions: read        # Required to identify workflow run.
+  checks: write        # Required to add status summary.
+  contents: read       # Required to check out repository.
+  pull-requests: write # Required to add comment and label.
+  id-token: write      # Required to configure AWS credentials.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE }}
+          aws-region: ${{ vars.TF_BUCKET_REGION }}
+
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12
+
+      - name: terraform plan/apply
+        uses: op5dev/tf-via-pr@v13
+        with:
+          command: apply
+          working-directory: terraform
+          validate: true
+          format: false
+          arg-auto-approve: true
+          arg-backend-config: "bucket=${{vars.TF_BUCKET}},region=${{vars.TF_BUCKET_REGION}},key=${{vars.TF_STATE_KEY}}"
+        env:
+          TF_VAR_aws_assume_role: ${{ vars.TF_AWS_ROLE_TO_ASSUME }}
+
+
+
+
