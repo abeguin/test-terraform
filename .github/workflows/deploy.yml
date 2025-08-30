@@ -1,4 +1,4 @@
-name: Deploy to AWS
+name: Tag release and deploy
 on:
   push:
     branches:
@@ -8,12 +8,12 @@ on:
 permissions:
   actions: read        # Required to identify workflow run.
   checks: write        # Required to add status summary.
-  contents: read       # Required to check out repository.
+  contents: write       # Required to check out repository.
   pull-requests: write # Required to add comment and label.
   id-token: write      # Required to configure AWS credentials.
 
 jobs:
-  build:
+  deploy_to_aws:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -40,6 +40,33 @@ jobs:
           arg-backend-config: "bucket=${{vars.TF_BUCKET}},region=${{vars.TF_BUCKET_REGION}},key=${{vars.TF_STATE_KEY}}"
         env:
           TF_VAR_aws_assume_role: ${{ vars.TF_AWS_ROLE_TO_ASSUME }}
+
+  tag_release:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: cocogitto/cocogitto-action@v3
+        name: release
+        id: release
+        with:
+          release: true
+
+      - name: github changelog
+        run: >
+          cog changelog
+          --at ${{ steps.release.outputs.version }}
+          --template full_hash > ${{ github.workspace }}-CHANGELOG.md
+
+      - name: github release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ github.workspace }}-CHANGELOG.md
+          tag_name: ${{ steps.release.outputs.version }}
+
 
 
 
