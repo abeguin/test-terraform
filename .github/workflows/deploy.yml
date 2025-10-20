@@ -49,7 +49,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: cocogitto/cocogitto-action@v3
+      - uses: cocogitto/cocogitto-action@v4
         name: release
         id: release
         with:
